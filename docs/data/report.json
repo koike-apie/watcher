@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-04-08T08:51:06.030273+00:00",
+  "generated_at": "2026-04-08T09:10:27.409960+00:00",
   "summary": {
     "total": 1,
-    "changed": 0,
-    "new": 1,
+    "changed": 1,
+    "new": 0,
     "unchanged": 0,
     "error": 0
   },
@@ -12,8 +12,8 @@
       "id": "f_academy",
       "name": "F.ACADEMY",
       "url": "https://www.f-academy.jp/",
-      "status": "new",
-      "checked_at": "2026-04-08T08:51:02.698633+00:00"
+      "status": "changed",
+      "checked_at": "2026-04-08T09:10:24.538631+00:00"
     }
   ]
 }
