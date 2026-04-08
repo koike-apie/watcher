@@ -1,0 +1,39 @@
+{
+  "targets": [
+    {
+      "id": "competitor_a",
+      "name": "競合A社",
+      "url": "https://example-competitor-a.com",
+      "selectors": {
+        "main_content": "main, article, .content, body",
+        "title": "title, h1"
+      },
+      "enabled": true
+    },
+    {
+      "id": "competitor_b",
+      "name": "競合B社",
+      "url": "https://example-competitor-b.com",
+      "selectors": {
+        "main_content": "main, article, .content, body",
+        "title": "title, h1"
+      },
+      "enabled": true
+    },
+    {
+      "id": "competitor_c",
+      "name": "競合C社",
+      "url": "https://example-competitor-c.com",
+      "selectors": {
+        "main_content": "main, article, .content, body",
+        "title": "title, h1"
+      },
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "max_text_length": 5000,
+    "request_timeout": 30,
+    "user_agent": "Mozilla/5.0 (compatible; CompetitorWatchBot/1.0)"
+  }
+}

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>競合ウォッチ・ダッシュボード</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #242736;
+      --border: #2e3348;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --accent: #6366f1;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    header .subtitle { font-size: 0.8rem; color: var(--text-muted); }
+
+    .badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .badge-changed  { background: #f59e0b22; color: var(--yellow); }
+    .badge-new      { background: #6366f122; color: var(--accent); }
+    .badge-unchanged{ background: #22c55e22; color: var(--green); }
+    .badge-error    { background: #ef444422; color: var(--red); }
+
+    .threat {
+      display: inline-flex;
+      gap: 2px;
+    }
+    .threat-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+    .threat-dot.active { background: var(--red); }
+    .threat-dot.active.mid { background: var(--yellow); }
+    .threat-dot.active.low { background: var(--green); }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+    }
+    .stat-card .label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .cards { display: grid; gap: 1rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--accent); }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title { font-weight: 700; font-size: 1rem; }
+    .card-url   { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .card-url a { color: var(--accent); text-decoration: none; }
+    .card-url a:hover { text-decoration: underline; }
+
+    .card-meta {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .analysis-block {
+      background: var(--surface2);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 0.75rem;
+    }
+
+    .analysis-block .summary {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .analysis-item .item-label {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+
+    .actions-list {
+      list-style: none;
+      padding: 0;
+    }
+    .actions-list li {
+      padding: 0.2rem 0;
+      padding-left: 0.75rem;
+      position: relative;
+    }
+    .actions-list li::before {
+      content: "›";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .no-analysis {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .generated-at {
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2rem;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 4rem;
+      color: var(--text-muted);
+    }
+
+    .confidence-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>競合ウォッチ・ダッシュボード</h1>
+      <div class="subtitle">競合サイト自動監視 + Claude AI 戦略分析</div>
+    </div>
+  </header>
+
+  <main>
+    <div id="loading">レポートを読み込み中...</div>
+    <div id="app" style="display:none">
+      <div class="stats" id="stats"></div>
+      <div class="section-title">監視対象サイト</div>
+      <div class="cards" id="cards"></div>
+      <div class="generated-at" id="generated-at"></div>
+    </div>
+  </main>
+
+  <script>
+    const STATUS_LABELS = {
+      changed:   { label: "変更あり", cls: "badge-changed" },
+      new:       { label: "初回取得", cls: "badge-new" },
+      unchanged: { label: "変更なし", cls: "badge-unchanged" },
+      error:     { label: "エラー",   cls: "badge-error" },
+    };
+
+    function badge(status) {
+      const s = STATUS_LABELS[status] || { label: status, cls: "" };
+      return `<span class="badge ${s.cls}">${s.label}</span>`;
+    }
+
+    function threatDots(level) {
+      if (!level) return "";
+      const dots = Array.from({ length: 5 }, (_, i) => {
+        const active = i < level;
+        const cls = active ? (level <= 2 ? "active low" : level <= 3 ? "active mid" : "active") : "";
+        return `<span class="threat-dot ${cls}"></span>`;
+      }).join("");
+      return `<span class="threat" title="脅威レベル ${level}/5">${dots}</span>`;
+    }
+
+    function renderAnalysis(analysis) {
+      if (!analysis) return `<p class="no-analysis">分析なし（変更が検出されませんでした）</p>`;
+
+      const actions = analysis.recommended_actions || {};
+      const short = (actions.short_term || []).slice(0, 3);
+      const mid   = (actions.mid_term   || []).slice(0, 2);
+
+      const shortHtml = short.length
+        ? `<ul class="actions-list">${short.map(a => `<li>${a}</li>`).join("")}</ul>`
+        : "なし";
+      const midHtml = mid.length
+        ? `<ul class="actions-list">${mid.map(a => `<li>${a}</li>`).join("")}</ul>`
+        : "なし";
+
+      const confidenceLabel = { high: "高", medium: "中", low: "低" }[analysis.confidence] || analysis.confidence;
+
+      return `
+        <div class="analysis-block">
+          <div class="summary">${analysis.summary || ""}</div>
+          <div class="analysis-grid">
+            <div class="analysis-item">
+              <div class="item-label">変更の性質</div>
+              <div>${analysis.change_nature || "不明"}</div>
+            </div>
+            <div class="analysis-item">
+              <div class="item-label">戦略的意図</div>
+              <div>${analysis.strategic_intent || "不明"}</div>
+            </div>
+            <div class="analysis-item">
+              <div class="item-label">短期推奨アクション</div>
+              <div>${shortHtml}</div>
+            </div>
+            <div class="analysis-item">
+              <div class="item-label">中期推奨アクション</div>
+              <div>${midHtml}</div>
+            </div>
+          </div>
+          <div style="margin-top:0.75rem; font-size:0.75rem; color:var(--text-muted)">
+            信頼度: <span class="confidence-badge">${confidenceLabel}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCard(result) {
+      const s = result.status;
+      const analysis = result.analysis;
+      const level = analysis?.threat_level || 0;
+
+      return `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${result.name}</div>
+              <div class="card-url"><a href="${result.url}" target="_blank" rel="noopener">${result.url}</a></div>
+            </div>
+            <div class="card-meta">
+              ${threatDots(level)}
+              ${badge(s)}
+            </div>
+          </div>
+          ${renderAnalysis(analysis)}
+        </div>
+      `;
+    }
+
+    async function loadReport() {
+      try {
+        const res = await fetch("data/report.json?t=" + Date.now());
+        if (!res.ok) throw new Error("report.json not found");
+        const report = await res.json();
+
+        // Stats
+        const s = report.summary || {};
+        document.getElementById("stats").innerHTML = [
+          { label: "監視対象", value: s.total ?? 0 },
+          { label: "変更あり", value: s.changed ?? 0 },
+          { label: "初回取得", value: s.new ?? 0 },
+          { label: "変更なし", value: s.unchanged ?? 0 },
+          { label: "エラー",   value: s.error ?? 0 },
+        ].map(item => `
+          <div class="stat-card">
+            <div class="label">${item.label}</div>
+            <div class="value">${item.value}</div>
+          </div>
+        `).join("");
+
+        // Cards
+        const results = report.results || [];
+        results.sort((a, b) => {
+          const order = { changed: 0, new: 1, error: 2, unchanged: 3 };
+          return (order[a.status] ?? 9) - (order[b.status] ?? 9);
+        });
+        document.getElementById("cards").innerHTML = results.map(renderCard).join("");
+
+        // Footer
+        if (report.generated_at) {
+          const d = new Date(report.generated_at);
+          document.getElementById("generated-at").textContent =
+            "最終更新: " + d.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) + " JST";
+        }
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      } catch (e) {
+        document.getElementById("loading").textContent =
+          "レポートが見つかりません。GitHub Actionsを実行してください。(" + e.message + ")";
+      }
+    }
+
+    loadReport();
+  </script>
+</body>
+</html>
