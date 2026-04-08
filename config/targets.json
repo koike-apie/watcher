@@ -1,29 +1,9 @@
 {
   "targets": [
     {
-      "id": "competitor_a",
-      "name": "競合A社",
-      "url": "https://example-competitor-a.com",
-      "selectors": {
-        "main_content": "main, article, .content, body",
-        "title": "title, h1"
-      },
-      "enabled": true
-    },
-    {
-      "id": "competitor_b",
-      "name": "競合B社",
-      "url": "https://example-competitor-b.com",
-      "selectors": {
-        "main_content": "main, article, .content, body",
-        "title": "title, h1"
-      },
-      "enabled": true
-    },
-    {
-      "id": "competitor_c",
-      "name": "競合C社",
-      "url": "https://example-competitor-c.com",
+      "id": "f_academy",
+      "name": "F.ACADEMY",
+      "url": "https://www.f-academy.jp/",
       "selectors": {
         "main_content": "main, article, .content, body",
         "title": "title, h1"
