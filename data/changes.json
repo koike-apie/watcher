@@ -1,0 +1,26 @@
+[
+  {
+    "id": "competitor_a",
+    "name": "競合A社",
+    "url": "https://example-competitor-a.com",
+    "status": "error",
+    "error": "HTTPSConnectionPool(host='example-competitor-a.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='example-competitor-a.com', port=443): Failed to resolve 'example-competitor-a.com' ([Errno -2] Name or service not known)\"))",
+    "checked_at": "2026-04-08T08:33:41.325528+00:00"
+  },
+  {
+    "id": "competitor_b",
+    "name": "競合B社",
+    "url": "https://example-competitor-b.com",
+    "status": "error",
+    "error": "HTTPSConnectionPool(host='example-competitor-b.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='example-competitor-b.com', port=443): Failed to resolve 'example-competitor-b.com' ([Errno -2] Name or service not known)\"))",
+    "checked_at": "2026-04-08T08:33:41.325528+00:00"
+  },
+  {
+    "id": "competitor_c",
+    "name": "競合C社",
+    "url": "https://example-competitor-c.com",
+    "status": "error",
+    "error": "HTTPSConnectionPool(host='example-competitor-c.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='example-competitor-c.com', port=443): Failed to resolve 'example-competitor-c.com' ([Errno -2] Name or service not known)\"))",
+    "checked_at": "2026-04-08T08:33:41.325528+00:00"
+  }
+]
