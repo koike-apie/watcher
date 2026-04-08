@@ -1,0 +1,65 @@
+name: Competitor Watch
+
+on:
+  schedule:
+    # 毎日 JST 9:00 (UTC 0:00) に実行
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      force_analyze:
+        description: "変更がなくても分析を強制実行"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  monitor-and-analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run monitor (scraping & diff detection)
+        run: python scripts/monitor.py
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          CHANGED=$(python -c "
+          import json
+          with open('data/changes.json') as f:
+              data = json.load(f)
+          count = sum(1 for r in data if r['status'] in ('changed', 'new'))
+          print(count)
+          ")
+          echo "changed_count=$CHANGED" >> $GITHUB_OUTPUT
+          echo "変更検出件数: $CHANGED"
+
+      - name: Run analysis with Claude API
+        if: steps.check_changes.outputs.changed_count != '0' || github.event.inputs.force_analyze == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/analyze.py
+
+      - name: Copy report to docs (GitHub Pages)
+        run: |
+          mkdir -p docs/data
+          cp data/report.json docs/data/report.json 2>/dev/null || echo '{"generated_at":"","summary":{"total":0},"results":[]}' > docs/data/report.json
+
+      - name: Commit and push results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ docs/data/
+          git diff --cached --quiet || git commit -m "chore: update competitor watch report [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push
