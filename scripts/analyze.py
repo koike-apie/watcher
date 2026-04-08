@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-analyze.py - 変更検出された差分をClaude APIで戦略分析し、レポートJSONを生成する
+analyze.py - 変更検出された差分をGemini APIで戦略分析し、レポートJSONを生成する
 """
 
 import json
@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-import anthropic
+import google.generativeai as genai
 
 BASE_DIR = Path(__file__).parent.parent
 CHANGES_PATH = BASE_DIR / "data" / "changes.json"
@@ -17,61 +17,58 @@ REPORT_PATH = BASE_DIR / "data" / "report.json"
 
 ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
 
-SYSTEM_PROMPT = """あなたは優秀な競合インテリジェンスアナリストです。
+PROMPT_TEMPLATE = """あなたは優秀な競合インテリジェンスアナリストです。
 競合他社のウェブサイトの変更内容を分析し、以下の観点で戦略的意図を評価してください：
 
-1. **変更の性質**: 何が変わったか（製品・価格・メッセージング・採用・技術など）
-2. **戦略的意図**: なぜこの変更を行ったと考えられるか
-3. **自社への影響**: この変更が自社にどのような影響を与えうるか
-4. **推奨アクション**: 自社として取るべき対応策（短期・中期）
-5. **脅威レベル**: 1〜5で評価（5が最も高い脅威）
+1. 変更の性質: 何が変わったか（製品・価格・メッセージング・採用・技術など）
+2. 戦略的意図: なぜこの変更を行ったと考えられるか
+3. 自社への影響: この変更が自社にどのような影響を与えうるか
+4. 推奨アクション: 自社として取るべき対応策（短期・中期）
+5. 脅威レベル: 1〜5で評価（5が最も高い脅威）
 
-回答は必ずJSON形式で返してください。"""
+回答は必ず以下のJSON形式のみで返してください（説明文は不要）:
+{{
+  "change_nature": "変更の性質",
+  "strategic_intent": "戦略的意図",
+  "business_impact": "自社への影響",
+  "recommended_actions": {{
+    "short_term": ["アクション1", "アクション2"],
+    "mid_term": ["アクション1"]
+  }},
+  "threat_level": 3,
+  "confidence": "high",
+  "summary": "1〜2文の要約"
+}}
 
-ANALYSIS_SCHEMA = {
-    "change_nature": "string",
-    "strategic_intent": "string",
-    "business_impact": "string",
-    "recommended_actions": {
-        "short_term": ["string"],
-        "mid_term": ["string"],
-    },
-    "threat_level": "integer (1-5)",
-    "confidence": "string (high/medium/low)",
-    "summary": "string (1-2 sentences for dashboard display)",
-}
-
-
-def build_user_message(record: dict) -> str:
-    diff_text = "\n".join(record.get("diff", []))[:3000]
-    return f"""
-競合他社: {record['name']}
-URL: {record['url']}
-検出日時: {record.get('fetched_at', record.get('checked_at', ''))}
-ページタイトル: {record.get('title', '不明')}
+---
+競合他社: {name}
+URL: {url}
+検出日時: {checked_at}
+ページタイトル: {title}
 
 【変更差分（unified diff形式）】
-{diff_text if diff_text else '(初回取得のため差分なし - 現在のコンテンツを分析してください)'}
+{diff}
 
 【現在のページ内容（抜粋）】
-{record.get('content', '')[:2000]}
-
-上記の変更について戦略的分析を行い、指定のJSON形式で回答してください。
-"""
+{content}"""
 
 
-def analyze_with_claude(record: dict, client: anthropic.Anthropic) -> dict:
-    message = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        messages=[
-            {"role": "user", "content": build_user_message(record)},
-        ],
+def build_prompt(record: dict) -> str:
+    diff_text = "\n".join(record.get("diff", []))[:3000]
+    return PROMPT_TEMPLATE.format(
+        name=record["name"],
+        url=record["url"],
+        checked_at=record.get("fetched_at", record.get("checked_at", "")),
+        title=record.get("title", "不明"),
+        diff=diff_text if diff_text else "(初回取得のため差分なし - 現在のコンテンツを分析してください)",
+        content=record.get("content", "")[:2000],
     )
-    raw_text = message.content[0].text.strip()
 
-    # JSONブロックの抽出
+
+def analyze_with_gemini(record: dict, model) -> dict:
+    response = model.generate_content(build_prompt(record))
+    raw_text = response.text.strip()
+
     if "```json" in raw_text:
         raw_text = raw_text.split("```json")[1].split("```")[0].strip()
     elif "```" in raw_text:
@@ -80,7 +77,6 @@ def analyze_with_claude(record: dict, client: anthropic.Anthropic) -> dict:
     try:
         return json.loads(raw_text)
     except json.JSONDecodeError:
-        # パース失敗時はサマリーのみ返す
         return {
             "change_nature": "解析エラー",
             "strategic_intent": "不明",
@@ -93,9 +89,9 @@ def analyze_with_claude(record: dict, client: anthropic.Anthropic) -> dict:
 
 
 def main():
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print("[ERROR] ANTHROPIC_API_KEY が設定されていません")
+        print("[ERROR] GEMINI_API_KEY が設定されていません")
         return 1
 
     if not CHANGES_PATH.exists():
@@ -105,18 +101,19 @@ def main():
     with open(CHANGES_PATH, encoding="utf-8") as f:
         changes = json.load(f)
 
-    # 変更あり・初回取得のみ分析
     targets = [r for r in changes if r["status"] in ("changed", "new")]
-    print(f"=== Claude分析開始: {len(targets)} 件 ===")
+    print(f"=== Gemini分析開始: {len(targets)} 件 ===")
 
-    client = anthropic.Anthropic(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-1.5-flash")
+
     now = datetime.now(timezone.utc).isoformat()
     analyses = []
 
     for record in targets:
         print(f"[ANALYZE] {record['name']}")
         try:
-            result = analyze_with_claude(record, client)
+            result = analyze_with_gemini(record, model)
             analysis_record = {
                 "id": record["id"],
                 "name": record["name"],
@@ -127,7 +124,6 @@ def main():
             }
             analyses.append(analysis_record)
 
-            # 個別ファイルにも保存
             out_path = ANALYSIS_DIR / f"{record['id']}.json"
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(analysis_record, f, ensure_ascii=False, indent=2)
@@ -136,8 +132,6 @@ def main():
         except Exception as e:
             print(f"  [ERROR] 分析失敗: {e}")
 
-    # 変更なし・エラーも含めた全サマリーレポートを生成
-    all_records = {r["id"]: r for r in changes}
     analysis_map = {a["id"]: a for a in analyses}
 
     report = {
