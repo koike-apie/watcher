@@ -55,6 +55,7 @@ jobs:
         run: |
           mkdir -p docs/data
           cp data/report.json docs/data/report.json 2>/dev/null || echo '{"generated_at":"","summary":{"total":0},"results":[]}' > docs/data/report.json
+          cp data/history.json docs/data/history.json 2>/dev/null || true
 
       - name: Commit and push results
         run: |

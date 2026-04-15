@@ -14,6 +14,7 @@ BASE_DIR = Path(__file__).parent.parent
 CHANGES_PATH = BASE_DIR / "data" / "changes.json"
 ANALYSIS_DIR = BASE_DIR / "data" / "analysis"
 REPORT_PATH = BASE_DIR / "data" / "report.json"
+HISTORY_PATH = BASE_DIR / "data" / "history.json"
 
 ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -164,7 +165,19 @@ def main():
     with open(REPORT_PATH, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
 
-    print(f"\n=== 完了: report.json を生成しました ===")
+    # 履歴に追記
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    history = []
+    if HISTORY_PATH.exists():
+        with open(HISTORY_PATH, encoding="utf-8") as f:
+            history = json.load(f)
+    history = [h for h in history if h.get("date") != today]
+    history.insert(0, {"date": today, **report})
+    history = history[:90]  # 直近90日分を保持
+    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+
+    print(f"\n=== 完了: report.json・history.json を生成しました ===")
     return 0
 
 

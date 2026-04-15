@@ -192,6 +192,32 @@
       background: var(--surface);
       border: 1px solid var(--border);
     }
+
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .history-header:hover { background: var(--surface2); }
+    .history-date { font-weight: 600; font-size: 0.95rem; }
+    .history-arrow { margin-left: auto; color: var(--text-muted); transition: transform 0.2s; }
+    .history-arrow.open { transform: rotate(180deg); }
+    .history-body {
+      display: none;
+      padding: 0 1.25rem 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+    .history-body.open { display: block; }
   </style>
 </head>
 <body>
@@ -209,6 +235,11 @@
       <div class="section-title">監視対象サイト</div>
       <div class="cards" id="cards"></div>
       <div class="generated-at" id="generated-at"></div>
+
+      <div id="history-section" style="margin-top:2.5rem; display:none">
+        <div class="section-title">変更履歴</div>
+        <div id="history-list"></div>
+      </div>
     </div>
   </main>
 
@@ -345,7 +376,55 @@
       }
     }
 
+    async function loadHistory() {
+      try {
+        const res = await fetch("data/history.json?t=" + Date.now());
+        if (!res.ok) return;
+        const history = await res.json();
+        if (!history.length) return;
+
+        document.getElementById("history-section").style.display = "block";
+        document.getElementById("history-list").innerHTML = history.map((entry, i) => {
+          const changed = (entry.summary?.changed ?? 0) + (entry.summary?.new ?? 0);
+          const resultsHtml = (entry.results || [])
+            .filter(r => r.status === "changed" || r.status === "new")
+            .map(r => `
+              <div style="margin-top:0.75rem">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+                  <span style="font-weight:600">${r.name}</span>
+                  ${badge(r.status)}
+                </div>
+                ${renderAnalysis(r.analysis)}
+              </div>
+            `).join("");
+
+          return `
+            <div class="history-item">
+              <div class="history-header" onclick="toggleHistory(${i})">
+                <span class="history-date">${entry.date}</span>
+                <span class="badge badge-changed">${changed} 件変更</span>
+                <span class="history-arrow" id="arrow-${i}">▼</span>
+              </div>
+              <div class="history-body" id="body-${i}">
+                ${resultsHtml || '<p style="color:var(--text-muted);padding-top:0.75rem">詳細なし</p>'}
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (e) {
+        // 履歴なしは無視
+      }
+    }
+
+    function toggleHistory(i) {
+      const body = document.getElementById("body-" + i);
+      const arrow = document.getElementById("arrow-" + i);
+      body.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
     loadReport();
+    loadHistory();
   </script>
 </body>
 </html>
