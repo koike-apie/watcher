@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-import google.generativeai as genai
+from google import genai
 
 BASE_DIR = Path(__file__).parent.parent
 CHANGES_PATH = BASE_DIR / "data" / "changes.json"
@@ -65,8 +65,11 @@ def build_prompt(record: dict) -> str:
     )
 
 
-def analyze_with_gemini(record: dict, model) -> dict:
-    response = model.generate_content(build_prompt(record))
+def analyze_with_gemini(record: dict, client) -> dict:
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=build_prompt(record),
+    )
     raw_text = response.text.strip()
 
     if "```json" in raw_text:
@@ -104,8 +107,7 @@ def main():
     targets = [r for r in changes if r["status"] in ("changed", "new")]
     print(f"=== Gemini分析開始: {len(targets)} 件 ===")
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    client = genai.Client(api_key=api_key)
 
     now = datetime.now(timezone.utc).isoformat()
     analyses = []
@@ -113,7 +115,7 @@ def main():
     for record in targets:
         print(f"[ANALYZE] {record['name']}")
         try:
-            result = analyze_with_gemini(record, model)
+            result = analyze_with_gemini(record, client)
             analysis_record = {
                 "id": record["id"],
                 "name": record["name"],
