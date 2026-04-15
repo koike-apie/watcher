@@ -200,13 +200,16 @@
       const actions = analysis.recommended_actions || {};
       const short = (actions.short_term || []).slice(0, 3);
       const mid   = (actions.mid_term   || []).slice(0, 2);
+      const details = analysis.change_details || [];
+      const detailsHtml = details.length ? `<ul class="actions-list">${details.map(d => `<li>${d}</li>`).join("")}</ul>` : "";
       const shortHtml = short.length ? `<ul class="actions-list">${short.map(a => `<li>${a}</li>`).join("")}</ul>` : "なし";
       const midHtml   = mid.length   ? `<ul class="actions-list">${mid.map(a => `<li>${a}</li>`).join("")}</ul>` : "なし";
       return `
         <div class="analysis-block">
+          ${detailsHtml ? `<div style="margin-bottom:0.85rem"><div class="item-label" style="margin-bottom:0.4rem">具体的な変更点</div>${detailsHtml}</div>` : ""}
           <div class="summary">${analysis.summary || ""}</div>
           <div class="analysis-grid">
-            <div class="analysis-item"><div class="item-label">変更の性質</div><div>${analysis.change_nature || "不明"}</div></div>
+            <div class="analysis-item"><div class="item-label">変更カテゴリ</div><div>${analysis.change_nature || "不明"}</div></div>
             <div class="analysis-item"><div class="item-label">戦略的意図</div><div>${analysis.strategic_intent || "不明"}</div></div>
             <div class="analysis-item"><div class="item-label">短期推奨アクション</div><div>${shortHtml}</div></div>
             <div class="analysis-item"><div class="item-label">中期推奨アクション</div><div>${midHtml}</div></div>
