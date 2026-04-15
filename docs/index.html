@@ -218,13 +218,90 @@
       border-top: 1px solid var(--border);
     }
     .history-body.open { display: block; }
+
+    /* ── 管理UI ── */
+    .header-actions { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
+
+    .btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: var(--border); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #4f52d0; }
+    .btn-danger { background: #ef444422; border-color: var(--red); color: var(--red); }
+    .btn-danger:hover { background: #ef444444; }
+    .btn-sm { padding: 0.2rem 0.6rem; font-size: 0.72rem; }
+
+    .card-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; justify-content: flex-end; }
+
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 440px;
+      z-index: 101;
+      position: relative;
+    }
+    .modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .modal-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+    .modal-label { font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem; margin-top: 0.75rem; }
+    .modal-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--text);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.88rem;
+    }
+    .modal-input:focus { outline: 2px solid var(--accent); }
+    .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.85rem;
+      z-index: 200;
+      animation: slideIn 0.2s ease;
+    }
+    .toast.success { border-color: var(--green); color: var(--green); }
+    .toast.error   { border-color: var(--red);   color: var(--red); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
   <header>
     <div>
       <h1>競合ウォッチ・ダッシュボード</h1>
-      <div class="subtitle">競合サイト自動監視 + Claude AI 戦略分析</div>
+      <div class="subtitle">競合サイト自動監視 + AI 戦略分析</div>
+    </div>
+    <div class="header-actions">
+      <a href="archive.html" class="btn">アーカイブ済み →</a>
+      <button class="btn" onclick="openTokenModal()">🔑 トークン</button>
+      <button class="btn btn-primary" onclick="openAddModal()">＋ サイト追加</button>
     </div>
   </header>
 
@@ -243,7 +320,163 @@
     </div>
   </main>
 
+  <!-- トークン設定モーダル -->
+  <div id="token-modal" style="display:none">
+    <div class="modal-overlay" onclick="closeModal('token-modal')">
+      <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-title">🔑 GitHub トークン設定</div>
+        <div class="modal-desc">
+          サイトの追加・アーカイブには GitHub Personal Access Token が必要です。<br>
+          <a href="https://github.com/settings/tokens/new?scopes=repo&description=watcher-dashboard" target="_blank" rel="noopener" style="color:var(--accent)">こちらで発行</a>（Contents の読み書き権限）し、貼り付けてください。ブラウザのローカルストレージにのみ保存されます。
+        </div>
+        <label class="modal-label">Personal Access Token</label>
+        <input type="password" id="token-input" class="modal-input" placeholder="ghp_xxxxxxxxxxxx">
+        <div class="modal-actions">
+          <button class="btn" onclick="closeModal('token-modal')">キャンセル</button>
+          <button class="btn btn-primary" onclick="saveToken()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- サイト追加モーダル -->
+  <div id="add-modal" style="display:none">
+    <div class="modal-overlay" onclick="closeModal('add-modal')">
+      <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-title">＋ サイトを追加</div>
+        <label class="modal-label">サイト名</label>
+        <input type="text" id="add-name" class="modal-input" placeholder="例: 競合A社">
+        <label class="modal-label">URL</label>
+        <input type="url" id="add-url" class="modal-input" placeholder="https://example.com">
+        <div class="modal-actions">
+          <button class="btn" onclick="closeModal('add-modal')">キャンセル</button>
+          <button class="btn btn-primary" id="add-submit" onclick="addSite()">追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const REPO = "koike-apie/watcher";
+
+    /* ── GitHub API ── */
+    function getToken() { return localStorage.getItem("gh_token") || ""; }
+
+    async function ghGet(path) {
+      const headers = { Accept: "application/vnd.github.v3+json" };
+      if (getToken()) headers.Authorization = `token ${getToken()}`;
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { headers });
+      if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+      return res.json();
+    }
+
+    async function ghPut(path, content, sha, message) {
+      const token = getToken();
+      if (!token) { openTokenModal(); throw new Error("token required"); }
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(content))), sha, branch: "main" }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.message || res.status); }
+      return res.json();
+    }
+
+    async function readTargets() {
+      const data = await ghGet("config/targets.json");
+      return { config: JSON.parse(atob(data.content.replace(/\n/g, ""))), sha: data.sha };
+    }
+
+    async function writeTargets(config, sha, message) {
+      return ghPut("config/targets.json", JSON.stringify(config, null, 2), sha, message);
+    }
+
+    /* ── トークン ── */
+    function openTokenModal() {
+      document.getElementById("token-input").value = getToken();
+      document.getElementById("token-modal").style.display = "block";
+    }
+    function saveToken() {
+      const t = document.getElementById("token-input").value.trim();
+      if (t) localStorage.setItem("gh_token", t);
+      closeModal("token-modal");
+      toast("トークンを保存しました", "success");
+    }
+
+    /* ── サイト追加 ── */
+    function openAddModal() {
+      if (!getToken()) { openTokenModal(); return; }
+      document.getElementById("add-name").value = "";
+      document.getElementById("add-url").value = "";
+      document.getElementById("add-modal").style.display = "block";
+    }
+
+    async function addSite() {
+      const name = document.getElementById("add-name").value.trim();
+      const url  = document.getElementById("add-url").value.trim();
+      if (!name || !url) { toast("名前と URL を入力してください", "error"); return; }
+      let id;
+      try {
+        id = new URL(url).hostname.replace(/^www\./, "").replace(/[^a-z0-9]/gi, "_").slice(0, 30);
+      } catch { toast("URL が正しくありません", "error"); return; }
+
+      const btn = document.getElementById("add-submit");
+      btn.disabled = true; btn.textContent = "追加中...";
+      try {
+        const { config, sha } = await readTargets();
+        if (config.targets.some(t => t.id === id || t.url === url)) {
+          toast("すでに登録済みのサイトです", "error"); return;
+        }
+        config.targets.push({
+          id, name, url,
+          selectors: { main_content: "main, article, .content, body", title: "title, h1" },
+          enabled: true,
+          archived: false,
+        });
+        await writeTargets(config, sha, `feat: add ${name} to watch targets`);
+        closeModal("add-modal");
+        toast(`「${name}」を追加しました。次回の監視から対象になります。`, "success");
+      } catch (e) {
+        toast("エラー: " + e.message, "error");
+      } finally {
+        btn.disabled = false; btn.textContent = "追加";
+      }
+    }
+
+    /* ── アーカイブ ── */
+    async function archiveSite(id, name) {
+      if (!getToken()) { openTokenModal(); return; }
+      if (!confirm(`「${name}」をアーカイブしますか？\n次回の監視から除外されます。`)) return;
+      try {
+        const { config, sha } = await readTargets();
+        const target = config.targets.find(t => t.id === id);
+        if (!target) throw new Error("対象が見つかりません");
+        target.enabled  = false;
+        target.archived = true;
+        target.archived_at = new Date().toISOString().slice(0, 10);
+        await writeTargets(config, sha, `chore: archive ${name}`);
+        document.getElementById("card-" + id)?.remove();
+        toast(`「${name}」をアーカイブしました`, "success");
+      } catch (e) {
+        toast("エラー: " + e.message, "error");
+      }
+    }
+
+    /* ── モーダル・トースト ── */
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+    function toast(msg, type = "success") {
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
     const STATUS_LABELS = {
       changed:   { label: "変更あり", cls: "badge-changed" },
       new:       { label: "初回取得", cls: "badge-new" },
@@ -316,7 +549,7 @@
       const level = analysis?.threat_level || 0;
 
       return `
-        <div class="card">
+        <div class="card" id="card-${result.id}">
           <div class="card-header">
             <div>
               <div class="card-title">${result.name}</div>
@@ -328,6 +561,9 @@
             </div>
           </div>
           ${renderAnalysis(analysis)}
+          <div class="card-actions">
+            <button class="btn btn-sm btn-danger" onclick="archiveSite('${result.id}', '${result.name.replace(/'/g, "\\'")}')">アーカイブ</button>
+          </div>
         </div>
       `;
     }

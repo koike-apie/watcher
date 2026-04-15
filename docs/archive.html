@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アーカイブ – 競合ウォッチ</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #242736;
+      --border: #2e3348; --text: #e2e8f0; --text-muted: #8892a4;
+      --accent: #6366f1; --green: #22c55e; --yellow: #f59e0b;
+      --red: #ef4444; --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; min-height: 100vh; }
+
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    header .subtitle { font-size: 0.8rem; color: var(--text-muted); }
+    .header-actions { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
+
+    .btn {
+      padding: 0.4rem 0.85rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); text-decoration: none; display: inline-flex; align-items: center;
+      gap: 0.3rem; transition: background 0.15s;
+    }
+    .btn:hover { background: var(--border); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #4f52d0; }
+    .btn-sm { padding: 0.2rem 0.6rem; font-size: 0.72rem; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+    .section-title {
+      font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;
+    }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem;
+    }
+    .card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1rem; margin-bottom: 0.75rem;
+    }
+    .card-title { font-weight: 700; font-size: 1rem; }
+    .card-url { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .card-url a { color: var(--accent); text-decoration: none; }
+    .archived-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .card-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; justify-content: flex-end; }
+
+    .analysis-block {
+      background: var(--surface2); border-radius: 0.5rem;
+      padding: 1rem; margin-top: 0.75rem;
+    }
+    .analysis-block .summary { font-size: 0.9rem; line-height: 1.6; margin-bottom: 0.75rem; }
+    .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.8rem; }
+    .analysis-item .item-label {
+      color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.04em; margin-bottom: 0.25rem;
+    }
+    .actions-list { list-style: none; padding: 0; }
+    .actions-list li { padding: 0.2rem 0; padding-left: 0.75rem; position: relative; }
+    .actions-list li::before { content: "›"; position: absolute; left: 0; color: var(--accent); }
+
+    .empty { text-align: center; padding: 4rem; color: var(--text-muted); }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 100; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 1rem; padding: 1.75rem; width: 100%; max-width: 440px; z-index: 101;
+    }
+    .modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .modal-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+    .modal-label { font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem; margin-top: 0.75rem; }
+    .modal-input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 0.5rem; color: var(--text); padding: 0.55rem 0.75rem; font-size: 0.88rem;
+    }
+    .modal-input:focus { outline: 2px solid var(--accent); }
+    .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.75rem 1.25rem;
+      font-size: 0.85rem; z-index: 200; animation: slideIn 0.2s ease;
+    }
+    .toast.success { border-color: var(--green); color: var(--green); }
+    .toast.error   { border-color: var(--red);   color: var(--red); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>アーカイブ済みサイト</h1>
+      <div class="subtitle">監視を停止したサイトの記録</div>
+    </div>
+    <div class="header-actions">
+      <a href="index.html" class="btn">← ダッシュボード</a>
+      <button class="btn" onclick="openTokenModal()">🔑 トークン</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="loading" class="empty">読み込み中...</div>
+    <div id="app" style="display:none">
+      <div class="section-title">アーカイブ済みサイト</div>
+      <div id="cards"></div>
+    </div>
+  </main>
+
+  <!-- トークン設定モーダル -->
+  <div id="token-modal" style="display:none">
+    <div class="modal-overlay" onclick="closeModal('token-modal')">
+      <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-title">🔑 GitHub トークン設定</div>
+        <div class="modal-desc">
+          復元操作には GitHub Personal Access Token が必要です。<br>
+          <a href="https://github.com/settings/tokens/new?scopes=repo&description=watcher-dashboard" target="_blank" rel="noopener" style="color:var(--accent)">こちらで発行</a>（Contents の読み書き権限）
+        </div>
+        <label class="modal-label">Personal Access Token</label>
+        <input type="password" id="token-input" class="modal-input" placeholder="ghp_xxxxxxxxxxxx">
+        <div class="modal-actions">
+          <button class="btn" onclick="closeModal('token-modal')">キャンセル</button>
+          <button class="btn btn-primary" onclick="saveToken()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const REPO = "koike-apie/watcher";
+
+    function getToken() { return localStorage.getItem("gh_token") || ""; }
+
+    async function ghGet(path) {
+      const headers = { Accept: "application/vnd.github.v3+json" };
+      if (getToken()) headers.Authorization = `token ${getToken()}`;
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { headers });
+      if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+      return res.json();
+    }
+
+    async function ghPut(path, content, sha, message) {
+      const token = getToken();
+      if (!token) { openTokenModal(); throw new Error("token required"); }
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(content))), sha, branch: "main" }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.message || res.status); }
+      return res.json();
+    }
+
+    async function readTargets() {
+      const data = await ghGet("config/targets.json");
+      return { config: JSON.parse(atob(data.content.replace(/\n/g, ""))), sha: data.sha };
+    }
+
+    async function writeTargets(config, sha, message) {
+      return ghPut("config/targets.json", JSON.stringify(config, null, 2), sha, message);
+    }
+
+    function openTokenModal() {
+      document.getElementById("token-input").value = getToken();
+      document.getElementById("token-modal").style.display = "block";
+    }
+    function saveToken() {
+      const t = document.getElementById("token-input").value.trim();
+      if (t) localStorage.setItem("gh_token", t);
+      closeModal("token-modal");
+      toast("トークンを保存しました", "success");
+    }
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+    function toast(msg, type = "success") {
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    function renderAnalysis(analysis) {
+      if (!analysis) return `<p style="color:var(--text-muted);font-size:0.82rem;font-style:italic">分析データなし</p>`;
+      const actions = analysis.recommended_actions || {};
+      const short = (actions.short_term || []).slice(0, 3);
+      const mid   = (actions.mid_term   || []).slice(0, 2);
+      const shortHtml = short.length ? `<ul class="actions-list">${short.map(a => `<li>${a}</li>`).join("")}</ul>` : "なし";
+      const midHtml   = mid.length   ? `<ul class="actions-list">${mid.map(a => `<li>${a}</li>`).join("")}</ul>` : "なし";
+      return `
+        <div class="analysis-block">
+          <div class="summary">${analysis.summary || ""}</div>
+          <div class="analysis-grid">
+            <div class="analysis-item"><div class="item-label">変更の性質</div><div>${analysis.change_nature || "不明"}</div></div>
+            <div class="analysis-item"><div class="item-label">戦略的意図</div><div>${analysis.strategic_intent || "不明"}</div></div>
+            <div class="analysis-item"><div class="item-label">短期推奨アクション</div><div>${shortHtml}</div></div>
+            <div class="analysis-item"><div class="item-label">中期推奨アクション</div><div>${midHtml}</div></div>
+          </div>
+        </div>`;
+    }
+
+    async function restoreSite(id, name) {
+      if (!getToken()) { openTokenModal(); return; }
+      if (!confirm(`「${name}」の監視を再開しますか？`)) return;
+      try {
+        const { config, sha } = await readTargets();
+        const target = config.targets.find(t => t.id === id);
+        if (!target) throw new Error("対象が見つかりません");
+        target.enabled  = true;
+        target.archived = false;
+        target.archived_at = null;
+        await writeTargets(config, sha, `chore: restore ${name} to watch targets`);
+        document.getElementById("card-" + id)?.remove();
+        toast(`「${name}」の監視を再開しました。次回の監視から対象になります。`, "success");
+      } catch (e) {
+        toast("エラー: " + e.message, "error");
+      }
+    }
+
+    async function loadArchive() {
+      try {
+        // アーカイブ済みサイトを取得
+        const { config } = await readTargets();
+        const archived = config.targets.filter(t => t.archived);
+
+        // 履歴から最終分析を取得
+        let historyMap = {};
+        try {
+          const hRes = await fetch("data/history.json?t=" + Date.now());
+          if (hRes.ok) {
+            const history = await hRes.json();
+            archived.forEach(site => {
+              const entry = history.find(h =>
+                (h.results || []).some(r => r.id === site.id && r.analysis)
+              );
+              if (entry) {
+                const result = entry.results.find(r => r.id === site.id);
+                historyMap[site.id] = { date: entry.date, analysis: result?.analysis };
+              }
+            });
+          }
+        } catch {}
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("app").style.display = "block";
+
+        if (archived.length === 0) {
+          document.getElementById("cards").innerHTML =
+            `<div class="empty">アーカイブ済みのサイトはありません</div>`;
+          return;
+        }
+
+        document.getElementById("cards").innerHTML = archived.map(site => {
+          const lastData = historyMap[site.id];
+          const archivedAt = site.archived_at ? `アーカイブ日: ${site.archived_at}` : "アーカイブ済み";
+          const lastAnalyzed = lastData ? `最終分析: ${lastData.date}` : "";
+          return `
+            <div class="card" id="card-${site.id}">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">${site.name}</div>
+                  <div class="card-url"><a href="${site.url}" target="_blank" rel="noopener">${site.url}</a></div>
+                  <div class="archived-meta">${archivedAt}${lastAnalyzed ? " ・ " + lastAnalyzed : ""}</div>
+                </div>
+              </div>
+              ${lastData?.analysis ? renderAnalysis(lastData.analysis) : `<p style="color:var(--text-muted);font-size:0.82rem;font-style:italic">分析データなし</p>`}
+              <div class="card-actions">
+                <button class="btn btn-sm btn-primary" onclick="restoreSite('${site.id}', '${site.name.replace(/'/g, "\\'")}')">監視を再開</button>
+              </div>
+            </div>`;
+        }).join("");
+      } catch (e) {
+        document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
+      }
+    }
+
+    loadArchive();
+  </script>
+</body>
+</html>
