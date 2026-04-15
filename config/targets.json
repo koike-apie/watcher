@@ -21,6 +21,17 @@
       },
       "enabled": true,
       "archived": false
+    },
+    {
+      "id": "money_shelikes_jp",
+      "name": "SHEmoney",
+      "url": "https://money.shelikes.jp/",
+      "selectors": {
+        "main_content": "main, article, .content, body",
+        "title": "title, h1"
+      },
+      "enabled": true,
+      "archived": false
     }
   ],
   "settings": {
