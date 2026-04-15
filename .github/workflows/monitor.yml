@@ -48,7 +48,7 @@ jobs:
       - name: Run analysis with Claude API
         if: steps.check_changes.outputs.changed_count != '0' || github.event.inputs.force_analyze == 'true'
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python scripts/analyze.py
 
       - name: Copy report to docs (GitHub Pages)

@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from google import genai
+from groq import Groq
 
 BASE_DIR = Path(__file__).parent.parent
 CHANGES_PATH = BASE_DIR / "data" / "changes.json"
@@ -65,12 +65,13 @@ def build_prompt(record: dict) -> str:
     )
 
 
-def analyze_with_gemini(record: dict, client) -> dict:
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=build_prompt(record),
+def analyze_with_groq(record: dict, client) -> dict:
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": build_prompt(record)}],
+        temperature=0.3,
     )
-    raw_text = response.text.strip()
+    raw_text = response.choices[0].message.content.strip()
 
     if "```json" in raw_text:
         raw_text = raw_text.split("```json")[1].split("```")[0].strip()
@@ -92,9 +93,9 @@ def analyze_with_gemini(record: dict, client) -> dict:
 
 
 def main():
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        print("[ERROR] GEMINI_API_KEY が設定されていません")
+        print("[ERROR] GROQ_API_KEY が設定されていません")
         return 1
 
     if not CHANGES_PATH.exists():
@@ -107,7 +108,7 @@ def main():
     targets = [r for r in changes if r["status"] in ("changed", "new")]
     print(f"=== Gemini分析開始: {len(targets)} 件 ===")
 
-    client = genai.Client(api_key=api_key)
+    client = Groq(api_key=api_key)
 
     now = datetime.now(timezone.utc).isoformat()
     analyses = []
@@ -115,7 +116,7 @@ def main():
     for record in targets:
         print(f"[ANALYZE] {record['name']}")
         try:
-            result = analyze_with_gemini(record, client)
+            result = analyze_with_groq(record, client)
             analysis_record = {
                 "id": record["id"],
                 "name": record["name"],
