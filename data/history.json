@@ -1,0 +1,63 @@
+[
+  {
+    "date": "2026-04-15",
+    "generated_at": "2026-04-15T03:25:58.512518+00:00",
+    "summary": {
+      "total": 2,
+      "changed": 1,
+      "new": 1,
+      "unchanged": 0,
+      "error": 0
+    },
+    "results": [
+      {
+        "id": "f_academy",
+        "name": "F.ACADEMY",
+        "url": "https://www.f-academy.jp/",
+        "status": "changed",
+        "checked_at": "2026-04-15T03:25:54.783337+00:00",
+        "analysis": {
+          "change_nature": "受講生の声のページに新しいエピソードやインタビュー動画が追加された",
+          "strategic_intent": "競合他社のF.ACADEMYが受講生の成功事例を強調してブランドイメージを向上させ、潜在的な顧客を引き付けることを目的としている",
+          "business_impact": "自社のマーケティング戦略やブランドイメージに影響を与える可能性がある",
+          "recommended_actions": {
+            "short_term": [
+              "自社の受講生の声ページを更新し、成功事例を強調する",
+              "競合他社の動向を継続的にモニターする"
+            ],
+            "mid_term": [
+              "自社のマーケティング戦略を再評価し、ブランドイメージを向上させるための新しいキャンペーンを計画する"
+            ]
+          },
+          "threat_level": 4,
+          "confidence": "high",
+          "summary": "競合他社のF.ACADEMYが受講生の成功事例を強調してブランドイメージを向上させ、潜在的な顧客を引き付けることを目的としている。自社のマーケティング戦略やブランドイメージに影響を与える可能性がある。"
+        }
+      },
+      {
+        "id": "service_abcash_co_jp",
+        "name": "ABCash",
+        "url": "https://service.abcash.co.jp/",
+        "status": "new",
+        "checked_at": "2026-04-15T03:25:54.783337+00:00",
+        "analysis": {
+          "change_nature": "初回取得のため差分なし。現在のコンテンツはお金のトレーニングに関する情報",
+          "strategic_intent": "お金のトレーニングサービスを強化し、顧客獲得とリテンションを改善する",
+          "business_impact": "自社の金融関連サービスに影響を与える可能性あり",
+          "recommended_actions": {
+            "short_term": [
+              "競合他社のサービスを詳細に分析する",
+              "自社のサービスとの比較検討を行う"
+            ],
+            "mid_term": [
+              "自社の金融関連サービスを強化するための戦略を検討する"
+            ]
+          },
+          "threat_level": 3,
+          "confidence": "high",
+          "summary": "競合他社ABCashのウェブサイトはお金のトレーニングサービスを提供しており、自社の金融関連サービスに影響を与える可能性がある。"
+        }
+      }
+    ]
+  }
+]
