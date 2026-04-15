@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-15T02:53:34.218032+00:00",
+  "generated_at": "2026-04-15T03:02:18.727960+00:00",
   "summary": {
     "total": 1,
     "changed": 1,
@@ -13,7 +13,24 @@
       "name": "F.ACADEMY",
       "url": "https://www.f-academy.jp/",
       "status": "changed",
-      "checked_at": "2026-04-15T02:53:31.282760+00:00"
+      "checked_at": "2026-04-15T03:02:17.836548+00:00",
+      "analysis": {
+        "change_nature": "受講生の体験談やインタビュー動画の追加",
+        "strategic_intent": "競合他社のF.ACADEMYが、より多くの受講生を集めるために、実際の受講生の体験談やインタビュー動画を追加し、スクールの信頼性と魅力を高めている",
+        "business_impact": "自社のスクールに対する競争が激化する可能性がある",
+        "recommended_actions": {
+          "short_term": [
+            "自社のスクールの信頼性と魅力を高めるための対策を講じる",
+            "受講生の体験談やインタビュー動画を追加する"
+          ],
+          "mid_term": [
+            "自社のスクールの独自性と差別化を強化する"
+          ]
+        },
+        "threat_level": 4,
+        "confidence": "high",
+        "summary": "F.ACADEMYが受講生の体験談やインタビュー動画を追加し、スクールの信頼性と魅力を高めており、自社のスクールに対する競争が激化する可能性がある"
+      }
     }
   ]
 }
