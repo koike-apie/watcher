@@ -1,5 +1,51 @@
 [
   {
+    "date": "2026-04-20",
+    "generated_at": "2026-04-20T01:22:30.866613+00:00",
+    "summary": {
+      "total": 3,
+      "changed": 1,
+      "new": 0,
+      "unchanged": 2,
+      "error": 0
+    },
+    "results": [
+      {
+        "id": "f_academy",
+        "name": "F.ACADEMY",
+        "url": "https://www.f-academy.jp/",
+        "status": "changed",
+        "checked_at": "2026-04-20T01:22:25.922699+00:00",
+        "analysis": {
+          "change_nature": "解析エラー",
+          "strategic_intent": "不明",
+          "business_impact": "不明",
+          "recommended_actions": {
+            "short_term": [],
+            "mid_term": []
+          },
+          "threat_level": 0,
+          "confidence": "low",
+          "summary": "{\n  \"change_details\": [\n    \"受講生の声のセクションに新しい体験談を追加（IZUMI塾、不動産投資、株式投資、パラレルインカム実現など）\",\n    \"一部の受講生の体験談を削除（Masaaki Itoさん、ひつじさん、池田 亮さんなど）\",\n    \"スクールのコースやセミナーの情報に変更なし\"\n  ],\n  \"change_nature\": \"コンテンツ刷新\",\n "
+        }
+      },
+      {
+        "id": "service_abcash_co_jp",
+        "name": "ABCash",
+        "url": "https://service.abcash.co.jp/",
+        "status": "unchanged",
+        "checked_at": "2026-04-20T01:22:25.922699+00:00"
+      },
+      {
+        "id": "money_shelikes_jp",
+        "name": "SHEmoney",
+        "url": "https://money.shelikes.jp/",
+        "status": "unchanged",
+        "checked_at": "2026-04-20T01:22:25.922699+00:00"
+      }
+    ]
+  },
+  {
     "date": "2026-04-19",
     "generated_at": "2026-04-19T01:22:34.839186+00:00",
     "summary": {
