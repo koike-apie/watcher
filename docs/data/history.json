@@ -1,5 +1,59 @@
 [
   {
+    "date": "2026-04-26",
+    "generated_at": "2026-04-26T01:25:17.042306+00:00",
+    "summary": {
+      "total": 3,
+      "changed": 1,
+      "new": 0,
+      "unchanged": 2,
+      "error": 0
+    },
+    "results": [
+      {
+        "id": "f_academy",
+        "name": "F.ACADEMY",
+        "url": "https://www.f-academy.jp/",
+        "status": "changed",
+        "checked_at": "2026-04-26T01:25:11.162838+00:00",
+        "analysis": {
+          "change_details": [
+            "受講生の感想や体験エピソード、インタビュー動画の内容が変更され、新しい受講生の体験が追加された",
+            "スクールのコースやセミナーの情報に変更がなかったが、受講生の体験談の更新が見られた"
+          ],
+          "change_nature": "コンテンツ刷新",
+          "strategic_intent": "F.ACADEMYは、受講生の体験エピソードを更新することで、スクールの信頼性と魅力を高め、潜在的な受講生を引き付けることを目的としている。さらに、スクールのコースやセミナーの情報を更新することで、提供するサービスが常に最新であることを示唆している。",
+          "business_impact": "F.ACADEMYの受講生の体験エピソードの更新は、自社のマーケティング戦略に影響を与える可能性がある。自社も同様の戦略を講じ、受講生の体験エピソードを更新することで、自社のスクールの信頼性と魅力を高めることができる。",
+          "recommended_actions": {
+            "short_term": [
+              "受講生の体験エピソードを更新し、自社のスクールの信頼性と魅力を高める"
+            ],
+            "mid_term": [
+              "自社のスクールのコースやセミナーの情報を更新し、提供するサービスが常に最新であることを示唆する"
+            ]
+          },
+          "threat_level": 2,
+          "confidence": "medium",
+          "summary": "F.ACADEMYのウェブサイトに受講生の体験エピソードの更新が見られた。受講生の体験エピソードの更新は、スクールの信頼性と魅力を高めるために行われたものと考えられる。自社も同様の戦略を講じ、受講生の体験エピソードを更新することで、自社のスクールの信頼性と魅力を高めることができる。"
+        }
+      },
+      {
+        "id": "service_abcash_co_jp",
+        "name": "ABCash",
+        "url": "https://service.abcash.co.jp/",
+        "status": "unchanged",
+        "checked_at": "2026-04-26T01:25:11.162838+00:00"
+      },
+      {
+        "id": "money_shelikes_jp",
+        "name": "SHEmoney",
+        "url": "https://money.shelikes.jp/",
+        "status": "unchanged",
+        "checked_at": "2026-04-26T01:25:11.162838+00:00"
+      }
+    ]
+  },
+  {
     "date": "2026-04-25",
     "generated_at": "2026-04-25T01:16:11.940307+00:00",
     "summary": {
